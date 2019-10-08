@@ -31,16 +31,31 @@ void orxFASTCALL Update(const orxCLOCK_INFO *_pstInfo, void *_pContext)
  */
 orxSTATUS orxFASTCALL Init()
 {
+    // Push main config section
+    orxConfig_PushSection("Main");
+
     // Display a small hint in console
-    orxLOG("\n* This template project creates a viewport/camera couple and an object"
-    "\n* You can play with the config parameters in ../data/config/SceneSwap.ini"
-    "\n* After changing them, relaunch the executable to see the changes.");
+    orxLOG("Please use the following inputs to select the corresponding scene transitions:");
+    for(orxS32 i = 0; i < orxConfig_GetListCount("Transitions"); i++)
+    {
+        orxINPUT_TYPE eType; orxENUM eID; orxINPUT_MODE eMode;
+
+        const orxSTRING zInput = orxConfig_GetListString("Transitions", i);
+        orxInput_GetBinding(zInput, 0, &eType, &eID, &eMode);
+        orxLOG(". %s -> %s", orxInput_GetBindingName(eType, eID, eMode), zInput);
+    }
+
+    // Activate first input
+    orxInput_SetValue(orxConfig_GetListString("Transitions", 0), orxFLOAT_1);
 
     // Create the viewport
     orxViewport_CreateFromConfig("Viewport");
 
-    // Registers update function
+    // Register update function
     orxClock_Register(orxClock_FindFirst(orx2F(-1.0f), orxCLOCK_TYPE_CORE), &Update, orxNULL, orxMODULE_ID_MAIN, orxCLOCK_PRIORITY_NORMAL);
+
+    // Pop config section
+    orxConfig_PopSection();
 
     // Done!
     return orxSTATUS_SUCCESS;
